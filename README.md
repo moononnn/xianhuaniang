@@ -6,7 +6,7 @@
 
 - 鲜花酿目前是早期预览版；部分功能仍依赖 Hana 的应用授权、酒馆模型配置和茶话会应用状态，别把“页面能打开”当成所有联动都已验收。
 - 首次启动需要联网安装内嵌酒馆的运行依赖，可能要等一阵，也会占用数百 MB 磁盘空间。
-- 内嵌的酒馆助手扩展附带 AFPL v9 许可证，其中有商业分发限制；随包第三方组件的授权见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和各自目录里的原始许可证。
+- 内嵌的 JS-Slash-Runner 扩展附带 AFPL v9 许可证，其中有商业分发限制；随包第三方组件的授权见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和各自目录里的原始许可证。
 - 角色卡、聊天和模型请求按酒馆本机设置处理；使用模型时，发送给哪家服务由你在酒馆里配置的渠道决定。
 
 ## 这是干什么的
@@ -55,6 +55,6 @@
 
 鲜花酿自有代码以 [GNU AGPL v3](LICENSE) 发布，继承旧版花酿（hanabrew）的许可证不变。AGPL 是很强的 copyleft：改了这份代码再给别人用，对外提供网络服务时也要公开对应源码。
 
-内嵌的 SillyTavern 及各扩展保留它们原有的许可证，与上面的 AGPL 是两回事；随包第三方组件的授权见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和各自目录里的原始许可证。注意其中酒馆助手扩展是 AFPL v9，带商业分发限制——AGPL 授权不覆盖它。
+内嵌的 SillyTavern 及各扩展保留它们原有的许可证，与上面的 AGPL 是两回事；随包第三方组件的授权见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和各自目录里的原始许可证。注意其中 JS-Slash-Runner 是 AFPL v9，带商业分发限制——AGPL 授权不覆盖它。
 
 **署名：moononnn & 小花**

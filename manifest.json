@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "id": "xianhuaniang",
   "name": "鲜花酿",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "capabilities": [
     "app/runtime.execute",
     "app/runtime.local-machine",

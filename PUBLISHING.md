@@ -34,7 +34,7 @@
 - `vendor/sillytavern/node_modules/`、npm 缓存、运行数据、日志、备份、密钥和临时文件
 - 用户角色卡、聊天、世界书、模型配置及其他个人资料
 
-**例外说明：**酒馆助手扩展源码中存在一个名为 `src/iframe/node_modules/` 的路径，当前只包含扩展运行所需的 `log.js` 与说明文件，并非 npm 依赖树；它必须保留。除此路径外，不得打包任何 `node_modules` 依赖目录。酒馆依赖会在首次启动时按随包 `package-lock.json` 执行 `npm ci`。
+**例外说明：**JS-Slash-Runner 扩展源码中存在一个名为 `src/iframe/node_modules/` 的路径，当前只包含扩展运行所需的 `log.js` 与说明文件，并非 npm 依赖树；它必须保留。除此路径外，不得打包任何 `node_modules` 依赖目录。酒馆依赖会在首次启动时按随包 `package-lock.json` 执行 `npm ci`。
 
 ### 打包要求
 
