@@ -10,8 +10,30 @@
 - 版本唯一来源：`manifest.json` 与 `package.json` 必须完全一致
 - Tag：`v<版本号>`
 - Release 标题：`v<版本号> — <本版主要变化>`
-- Release 附件：`xianhuaniang-v<版本号>.zip`
+- Release 附件：三个，缺一不可
+  - `app-xianhuaniang-<版本号>.entry.json` — 官方打包器产物，**市场登记只认这个**
+  - `app-xianhuaniang-<版本号>.zip` — 官方打包器产物，无顶层文件夹，市场登记指向的包
+  - `xianhuaniang-v<版本号>.zip` — git archive 自建包，顶层带 `xianhuaniang/`，手动安装用
 - CI：`.github/workflows/test.yml`；合并或推送到 `main` 后运行自动测试
+
+### 发布说明（Release notes）检查项
+
+发布说明常从上一版复制改写，**最容易漏的就是附件文件名**——表格与安装指引里的版本号不跟着改，页面上就会写着上一版的文件名，用户按着找不到对应附件。
+
+创建 Release 后必须回查：
+
+```powershell
+# 把线上正文拉回来，扫上一版文件名是否残留
+$body = gh release view v<版本号> -R moononnn/xianhuaniang --json body --jq '.body'
+$body | Select-String 'xianhuaniang-v0\.1\.\d+\.zip|xianhuaniang-0\.1\.\d+\.zip'
+# 再把正文里引用的附件名与实际附件名对一遍
+$body | Select-String 'xianhuaniang[^`]*\.(zip|json)' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
+gh release view v<版本号> -R moononnn/xianhuaniang --json assets --jq '.assets[].name'
+```
+
+注意区分：正文末尾「vX 相对 vY 改了什么」里的**旧版本号是正确的历史说明，不要一起改**；要改的只是附件表格与安装指引里的当前文件名。
+
+> 市场登记不受 Release 正文影响：它只认 `approvals.json` 的 tag 与 sha256，指向官方包实物。但正文错了仍然会误导下载的人，两处都要准。
 
 ## 2. 发布档位
 
