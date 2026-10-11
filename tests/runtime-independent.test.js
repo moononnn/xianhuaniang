@@ -17,7 +17,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-import { ensureServer, runtimeConfig, runtimeStatus, stopServer } from "../backend/st-runtime.js";
+import { ensureServer, npmCacheDir, runtimeConfig, runtimeStatus, stopServer } from "../backend/st-runtime.js";
 import { isDirectRun, resolveBundledEngineDir } from "../runtime/st-launcher.mjs";
 import { ensureEngineDependencies, runCommand } from "../runtime/engine-ensure-deps.mjs";
 
@@ -27,6 +27,16 @@ const engineDir = join(appRoot, "vendor", "sillytavern");
 function readyRecord(runtimeId, state = "ready") {
   return { runtimeId, state, runtime: "node", service: { state } };
 }
+
+test("npm 缓存目录：走宿主 dataDir，拿不到时也不写进安装目录", () => {
+  const stDir = join(engineDir, "vendor", "sillytavern");
+  assert.equal(npmCacheDir("D:/plugin-data/xianhuaniang", stDir), join("D:/plugin-data/xianhuaniang", "runtime-deps", "npm-cache"));
+  // 退化分支：ctx.dataDir 缺失时原来会落进 vendor/sillytavern，安装目录可能只读、
+  // 也会随卸载升级被换掉，缓存被清就等于每次启动重装一遍依赖。
+  const fallback = npmCacheDir("", stDir);
+  assert.ok(!fallback.startsWith(engineDir), "缓存不能落进安装目录：" + fallback);
+  assert.match(fallback, /xianhuaniang[\\/]npm-cache$/);
+});
 
 test("runtimeConfig resolves the App-owned real vendor engine and preserves the v2 data root", () => {
   const config = runtimeConfig();

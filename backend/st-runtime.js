@@ -29,6 +29,18 @@ function dataRoot() {
   const roaming = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
   return join(roaming, "xianhuaniang", "st-data");
 }
+/**
+ * 装酒馆依赖时用的 npm 缓存目录。
+ * 正常走宿主给的 ctx.dataDir（包外目录）。ctx.dataDir 缺失时不能退回安装目录——
+ * vendor/sillytavern 在安装位置，可能只读，随卸载/升级也会被换掉，
+ * 缓存写进去要么失败要么被清掉，导致每次启动都重装一遍依赖。
+ * 这时改走 %LOCALAPPDATA%\xianhuaniang\npm-cache，和 st-data 一样在包外。
+ */
+export function npmCacheDir(dataDir, stDir) {
+  if (dataDir) return join(dataDir, "runtime-deps", "npm-cache");
+  const local = process.env.LOCALAPPDATA || join(homedir(), "AppData", "Local");
+  return join(local, "xianhuaniang", "npm-cache");
+}
 const LAUNCHER_ENTRY = "runtime/st-launcher.mjs";
 
 let runtime = null;
@@ -91,7 +103,7 @@ export async function ensureServer(ctx, log = () => {}) {
         // 同上：工具执行期间宿主会无条件注入 callToken，local-machine 拒绝它，
         // 不显式声明 scope: "app" 就起不来。
         scope: "app",
-        args: ["--st-dir", config.stDir, "--data-root", config.dataRoot, "--port", String(DEFAULT_PORT), "--npm-cache", join(ctx.dataDir || config.stDir, 'runtime-deps', 'npm-cache')],
+        args: ["--st-dir", config.stDir, "--data-root", config.dataRoot, "--port", String(DEFAULT_PORT), "--npm-cache", npmCacheDir(ctx.dataDir, config.stDir)],
         service: { port: DEFAULT_PORT, readyMarker: "HANABREW_V2_ST_READY" },
       });
       // runtimeId is on the returned record; `runtime` is usually the string "node".
