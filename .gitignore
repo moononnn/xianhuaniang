@@ -1,0 +1,22 @@
+/node_modules/
+/vendor/sillytavern/node_modules/
+/vendor/sillytavern/.npm-cache/
+/vendor/sillytavern/backups/
+/app-data/
+/data/
+/logs/
+*.log
+*.tmp
+*.bak
+*.zip
+.env
+.env.*
+**/secrets.json
+**/*api-key*.json
+
+# Local development notes; keep out of the public repository.
+/PENDING_CHANGES.md
+/PROJECT_LOG.md
+/MIGRATION_PLAN.md
+/NEW-WINDOW-HANDOFF.md
+/OLD_TOOL_PARITY.md

@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>鲜花酿工作台</title>
+  <style>
+    :root { color-scheme: light; --bg: #f7f1e7; --paper: #fffaf3; --ink: #40544d; --muted: #71857c; --mint: #5dae8e; --mint-deep: #39765e; --mint-soft: #e6f2eb; --pink: #e89bb0; --line: #d9e7df; --shadow: 0 8px 22px rgba(64, 84, 77, .07); }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; background: var(--bg); color: var(--ink); font-family: "LXGW WenKai", "霞鹜文楷", "Microsoft YaHei", system-ui, sans-serif; }
+    button { font: inherit; }
+    #panel { display: flex; flex-direction: column; gap: 10px; min-height: 100vh; padding: 14px 12px; }
+    header { display: grid; gap: 2px; padding: 0 3px 4px; }
+    h1 { margin: 0; color: var(--mint-deep); font-size: 17px; line-height: 1.35; }
+    header p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .actions { display: grid; gap: 7px; }
+    .action { width: 100%; display: flex; align-items: center; gap: 9px; min-height: 52px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); box-shadow: var(--shadow); color: var(--ink); text-align: left; cursor: pointer; transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+    .action:hover { transform: translateY(-1px); border-color: #b9d9c9; box-shadow: 0 11px 25px rgba(64, 84, 77, .1); }
+    .action:focus-visible { outline: 3px solid rgba(232, 155, 176, .45); outline-offset: 2px; }
+    .mark { width: 26px; height: 26px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 9px; background: var(--mint-soft); color: var(--mint-deep); font-size: 12px; font-weight: 700; }
+    .copy { display: grid; gap: 2px; min-width: 0; }
+    .copy strong { font-size: 12.5px; line-height: 1.35; }
+    .copy small { color: var(--muted); font-size: 10.5px; line-height: 1.4; }
+    /* 低频入口收进折叠区：默认只露一条，展开后是两行一格的紧凑行，不再和大卡抢视觉重量。 */
+    .more { display: grid; gap: 6px; }
+    .more-toggle { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 34px; padding: 5px 9px; border: 1px solid var(--line); border-radius: 12px; background: var(--mint-soft); color: var(--mint-deep); font-size: 12px; text-align: left; cursor: pointer; transition: border-color .16s ease; }
+    .more-toggle:hover { border-color: #b9d9c9; }
+    .more-toggle:focus-visible { outline: 3px solid rgba(232, 155, 176, .45); outline-offset: 2px; }
+    .more-toggle .hint { margin-left: auto; color: var(--muted); font-size: 10px; }
+    .more-toggle .chev { color: var(--mint-deep); font-size: 10px; transition: transform .16s ease; }
+    .more-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .more-list { display: grid; gap: 6px; }
+    .ting { width: 100%; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); text-align: left; cursor: pointer; transition: transform .16s ease, border-color .16s ease; }
+    .ting:hover { transform: translateY(-1px); border-color: #b9d9c9; }
+    .ting:focus-visible { outline: 3px solid rgba(232, 155, 176, .45); outline-offset: 2px; }
+    .ting .mark { width: 24px; height: 24px; border-radius: 8px; background: #eef5f0; font-size: 11px; }
+    .ting-copy { display: grid; gap: 1px; min-width: 0; }
+    .ting strong { font-size: 12px; line-height: 1.35; }
+    .ting small { color: var(--muted); font-size: 10px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ting .chev { margin-left: auto; flex: 0 0 auto; color: #b6c9c0; font-size: 12px; }
+    #status { min-height: 20px; margin: auto 3px 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .panel { display: none; flex-direction: column; gap: 10px; }
+    .panel.open { display: flex; }
+    [hidden] { display: none !important; }
+    .list { display: grid; gap: 8px; }
+    .item { display: grid; gap: 5px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); box-shadow: var(--shadow); }
+    .group-title { margin: 2px 3px 0; color: var(--muted); font-size: 11px; font-weight: 400; letter-spacing: .04em; }
+    .badge { padding: 2px 8px; border-radius: 99px; background: var(--mint-soft); color: var(--mint-deep); font-size: 10px; }
+    .badge.is-resident { background: #f8e8ed; color: #a75d76; }
+    .do.ghost { background: none; border: 1px solid var(--line); color: var(--mint-deep); }
+    .do.ghost:hover { background: var(--mint-soft); }
+    .item h2 { margin: 0; font-size: 13px; line-height: 1.45; }
+    .item p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+    .row { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; overflow-x: auto; }
+    .row button { flex: none; white-space: nowrap; min-height: 44px; }
+    input, select, textarea { font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px; width: 100%; }
+    input[type=checkbox], input[type=radio] { width: auto; accent-color: var(--mint-deep); }
+    label { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+    fieldset { border: 1px solid var(--line); border-radius: 16px; margin: 0; padding: 10px; display: grid; gap: 8px; }
+    legend { font-size: 12px; color: var(--mint-deep); }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--mint-deep); outline-offset: 2px; }
+    .back { min-height: 44px; }
+    .controls { position: sticky; bottom: 0; padding: 8px 0; background: var(--bg); }
+    #status:empty { display: none; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+    .chip { padding: 2px 7px; border-radius: 99px; background: var(--mint-soft); color: var(--mint-deep); font-size: 10px; }
+    .do { padding: 6px 12px; border: 0; border-radius: 10px; background: var(--mint-deep); color: #fff; font-size: 12px; cursor: pointer; }
+    .do:hover { background: #2f654f; }
+    .do[disabled] { opacity: .55; cursor: default; }
+    .do:focus-visible { outline: 3px solid rgba(232, 155, 176, .45); outline-offset: 2px; }
+    .back { border: 0; background: none; padding: 0; color: var(--mint-deep); font-size: 12px; cursor: pointer; text-align: left; }
+    .back:focus-visible { outline: 3px solid rgba(232, 155, 176, .45); outline-offset: 2px; }
+    .preview { margin: 0; padding: 9px 10px; border-radius: 11px; background: var(--mint-soft); color: var(--mint-deep); font-size: 11px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 190px; overflow: auto; }
+    .action.is-off { opacity: .55; cursor: not-allowed; box-shadow: none; background: #f1ece4; border-color: #e0d8cc; }
+    .action.is-off:hover { transform: none; border-color: #e0d8cc; box-shadow: none; }
+    .action.is-off .mark { background: #e6dfd4; color: #9a9184; }
+    .tag-off { padding: 2px 8px; border-radius: 99px; background: #eee7dd; color: #8d8375; font-size: 10px; white-space: nowrap; }
+    .notice { display: grid; gap: 5px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 13px; background: #f7f2e9; }
+    .notice h2 { margin: 0; color: #8d8375; font-size: 13px; }
+    .notice p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .notice code { padding: 1px 4px; border-radius: 4px; background: #ece5d9; color: #7d7466; font-size: 10px; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: #c9dfd3; border: 2px solid var(--bg); border-radius: 99px; }
+    *::-webkit-scrollbar-thumb:hover { background: var(--mint); }
+    * { scrollbar-width: thin; scrollbar-color: #c9dfd3 transparent; }
+  </style>
+</head>
+<body>
+  <main id="panel">
+    <header>
+      <h1>鲜花酿工作台</h1>
+      <p>酒馆在主页面自动打开，常用入口放在这里。</p>
+    </header>
+    <section class="actions" id="home" aria-label="鲜花酿功能入口">
+      <button class="action is-off" id="inviteCharacter" type="button" aria-disabled="true">
+        <span class="mark" aria-hidden="true">请</span>
+        <span class="copy"><strong>邀请酒馆角色到茶话会</strong><small id="inviteSubtitle">正在检查茶话会是否已启用…</small></span>
+        <span class="tag-off" id="inviteTag">检查中</span>
+      </button>
+      <button class="action" id="exportPartner" type="button">
+        <span class="mark" aria-hidden="true">伴</span>
+        <span class="copy"><strong>把伙伴带去酒馆</strong><small>将 Hana 里的伙伴整理成角色卡</small></span>
+      </button>
+      <div class="more">
+        <button class="more-toggle" id="moreToggle" type="button" aria-expanded="false" aria-controls="moreList">
+          <span>更多工具</span><span class="hint">2 项</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="more-list" id="moreList" hidden>
+          <button class="ting" id="cardLab" type="button" title="玩法说明：回到对话里说需求">
+            <span class="mark" aria-hidden="true">测</span>
+            <span class="ting-copy"><strong>测卡与代笔怎么用</strong><small>玩法说明：回到对话里说需求</small></span>
+            <span class="chev" aria-hidden="true">›</span>
+          </button>
+          <button class="ting" id="migrationManager" type="button" title="先预览冲突，保留源资料，不默认覆盖">
+            <span class="mark" aria-hidden="true">迁</span>
+            <span class="ting-copy"><strong>从旧版搬过来</strong><small>先预览冲突，保留源资料，不默认覆盖</small></span>
+            <span class="chev" aria-hidden="true">›</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <section class="notice" id="inviteNotice" aria-label="茶话会不可用时的说明" hidden>
+      <h2 id="inviteNoticeTitle">正在看茶话会准备好了没…</h2>
+      <p id="inviteNoticeText">稍等一下，或者点一下上面的入口重新检查。</p>
+    </section>
+
+    <section class="panel" id="invitePanel" aria-label="邀请酒馆角色到茶话会">
+      <button class="back" id="inviteBack" type="button">← 返回</button>
+      <h2 class="group-title" id="characterTitle">酒馆里的角色</h2>
+      <div class="list" id="characterList"></div>
+    </section>
+
+    <section class="panel" id="exportPanel" aria-label="把伙伴带去酒馆">
+      <button class="back" id="exportBack" type="button">← 返回</button>
+      <div class="list" id="agentList"></div>
+    </section>
+    <section class="panel" id="visitorPanel" aria-label="来访管理"><button class="back" data-workbench-back type="button">← 返回</button><p class="group-title">访客以独立来访会话存在；住下来不会使伙伴出现在宿主公开列表。旧档如受可见性限制，修复不能改变宿主可见性。</p><div class="list" id="visitorList"></div><h2 class="group-title">从角色卡邀请</h2><div class="list" id="visitorCharacters"></div></section>
+    <section class="panel" id="theaterPanel" aria-label="测卡与代笔怎么用"><button class="back" data-workbench-back type="button">← 返回</button><p class="group-title">这页只讲怎么开口。测卡和代笔都在对话里那张卡上跑，这里不选卡、不提交，也不保留过程。</p><div class="list">
+      <article class="item"><h2>怎么用</h2><p>回到当前对话，直接说你要做什么。伙伴会在这次对话里把那张卡开出来，角色卡、测试方式和方向在卡里选。</p><p>逐幕过程和角色回复都在卡里，这里不重复展示；结论和需要你拍板的关键选择，会回到对话里说清楚。</p></article>
+      <article class="item"><h2>可以这么说</h2><p><code>帮我测一下这张角色卡</code></p><p><code>看看角色卡变量有没有生效</code></p><p><code>帮我代笔对戏</code></p></article>
+      <article class="item"><h2>这个页面现在不做的事</h2><p>不选卡、不提交、不展示逐幕过程，也不读当前对话。</p><p>后台功能保留，不会在这里创建、取消或清理任务。</p></article>
+    </div></section>
+    <section class="panel" id="migrationPanel" aria-label="旧版资料迁移"><button class="back" data-workbench-back type="button">← 返回</button><p class="group-title">只搬所选资料，不删除源。同名默认跳过；设置必须明确勾选。</p><div class="list" id="migrationPreview"></div><div class="row controls"><button class="do ghost" id="migrationScan" type="button">重新预览</button><button class="do ghost" id="migrationStatus" type="button">查看上次结果</button><button class="do" id="migrationApply" type="button" disabled>导入所选</button></div><pre class="preview" id="migrationResult" hidden></pre></section>
+    <p id="status" aria-live="polite">正在准备…</p>
+  </main>
+  <script type="module">
+    import { hana } from "./assets/sdk.js";
+    hana.ready();
+    (() => {
+      const api = hana?.api;
+      const status = document.getElementById("status");
+      const home = document.getElementById("home");
+      const invitePanel = document.getElementById("invitePanel");
+      const exportPanel = document.getElementById("exportPanel");
+      const characterList = document.getElementById("characterList");
+      const characterTitle = document.getElementById("characterTitle");
+      const inviteButton = document.getElementById("inviteCharacter");
+      const inviteSubtitle = document.getElementById("inviteSubtitle");
+      const inviteTag = document.getElementById("inviteTag");
+      const inviteNotice = document.getElementById("inviteNotice");
+      const inviteNoticeTitle = document.getElementById("inviteNoticeTitle");
+      const inviteNoticeText = document.getElementById("inviteNoticeText");
+      const agentList = document.getElementById("agentList");
+      let busy = false;
+      let teaPartyAvailable = false;
+      let teaPartyStatusError = false;
+
+      const say = (text) => { status.textContent = text; };
+
+      async function call(path, init = {}) {
+        if (!api?.fetch) throw new Error("这个面板没有拿到 Hana App 请求桥接。");
+        const response = await api.fetch(path, init);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) throw new Error(data.error || `请求失败（${response.status}）`);
+        return data;
+      }
+      const post = (path, body) => call(path, { method: "POST", body: JSON.stringify(body || {}) });
+
+      function show(...panels) {
+        home.hidden = panels.length > 0;
+        inviteNotice.hidden = panels.length > 0 || teaPartyAvailable;
+        for (const panel of document.querySelectorAll('.panel')) panel.classList.remove("open");
+        for (const panel of panels) panel.classList.add("open");
+      }
+
+      function busyOn(on) {
+        busy = on;
+        document.getElementById('panel').setAttribute('aria-busy', String(on));
+        // 临时忙态与业务禁用态分开，避免结束请求时误解锁旧档或迁移提交按钮。
+        for (const section of document.querySelectorAll('.actions, .panel')) section.inert = on;
+      }
+
+      async function guard(task) {
+        if (busy) return;
+        busyOn(true);
+        say('已收到，正在处理…');
+        try { await task(); } catch (error) { say(hint(error)); } finally { busyOn(false); }
+      }
+
+      /** 权限不够时给中文能力名与 Hana 中文路径，不把内部词单独丢给人找。 */
+      function hint(error) {
+        const message = error?.message || "出了点问题，再试一次。";
+        const match = message.match(/app\/[\w.]+/);
+        const labels = { "app/services.call": "应用间服务调用" };
+        return match
+          ? `${message}（打开 Hana 设置 → 应用 → 应用权限，给鲜花酿开启「${labels[match[0]] || "对应能力"}（${match[0]}）」）`
+          : message;
+      }
+
+      // 入口不可用时，把「没装」「没连上」「装了但要重载」分开说，
+      // 不再一律报「需要先安装」——茶话会装着的时候，那句话只会把人绕到错误的方向。
+      const TEA_PARTY_UNAVAILABLE = {
+        "no-bus": {
+          tag: "未连通",
+          title: "鲜花酿没能拿到应用间通道",
+          text: "请到 Hana 设置 → 应用 → 应用权限，给鲜花酿开启「应用间服务调用（app/services.call）」，然后重新加载鲜花酿。",
+        },
+      };
+
+      // 入口能不能用只看我有没有跨 App 通道；探测结果恒不可信，不再拿它改文案。
+      function setTeaPartyAvailability(available, reason = "no-bus") {
+        teaPartyAvailable = available === true;
+        const blocked = teaPartyAvailable ? null : (TEA_PARTY_UNAVAILABLE[reason] || TEA_PARTY_UNAVAILABLE["no-bus"]);
+        inviteButton.classList.toggle("is-off", !teaPartyAvailable);
+        inviteButton.setAttribute("aria-disabled", String(!teaPartyAvailable));
+        inviteSubtitle.textContent = teaPartyAvailable
+          ? "从酒馆选一张角色卡，邀请到茶话会"
+          : blocked.title;
+        inviteTag.className = teaPartyAvailable ? "badge" : "tag-off";
+        inviteTag.textContent = teaPartyAvailable ? "可邀请" : blocked.tag;
+        inviteNotice.hidden = !blocked;
+        inviteNoticeTitle.textContent = blocked ? blocked.title : "";
+        inviteNoticeText.textContent = blocked ? blocked.text : "";
+      }
+
+      async function refreshTeaPartyAvailability() {
+        try {
+          const result = await call("/workbench/tea-party/status");
+          teaPartyStatusError = false;
+          setTeaPartyAvailability(result.available, result.reason);
+        } catch {
+          // 状态读不到也不锁死入口：真去试一次，失败时报错比预判准。
+          teaPartyStatusError = true;
+          setTeaPartyAvailability(true, "ready");
+        }
+      }
+
+      function action(label, onClick, ghost = false) {
+        const button = document.createElement("button");
+        button.className = ghost ? "do ghost" : "do";
+        button.type = "button";
+        button.textContent = label;
+        button.addEventListener("click", () => guard(onClick));
+        return button;
+      }
+
+      function renderCharacters(characters) {
+        characterList.replaceChildren();
+        for (const character of characters) {
+          const item = document.createElement("article");
+          item.className = "item";
+          const title = document.createElement("h2");
+          title.textContent = character.name;
+          const line = document.createElement("p");
+          line.textContent = character.description || "这张卡没写简介。";
+          const row = document.createElement("div");
+          row.className = "row";
+          for (const tag of character.tags.slice(0, 4)) {
+            const chip = document.createElement("span");
+            chip.className = "chip";
+            chip.textContent = tag;
+            row.append(chip);
+          }
+          const preview = document.createElement("pre");
+          preview.className = "preview";
+          preview.hidden = true;
+          const invite = action("邀请到茶话会", async () => {
+            say(`正在把${character.name}的角色资料交给茶话会…`);
+            const result = await post("/workbench/tea-party/invite", { file: character.file });
+            invite.disabled = true;
+            invite.textContent = result.created ? "已邀请" : "设定已更新";
+            const notes = [];
+            if (result.avatarNote) notes.push(result.avatarNote);
+            if (!result.hasAvatar) notes.push("茶话会会用名字首字占位");
+            say(result.created
+              ? `${result.name}已经加入茶话会${notes.length ? `（${notes.join("；")}）` : ""}。`
+              : `${result.name}的角色设定已更新，原有聊天和记忆都保留着${notes.length ? `（${notes.join("；")}）` : ""}。`);
+          });
+          if (character.unavailableReason) {
+            invite.disabled = true;
+            invite.title = character.unavailableReason;
+          }
+          row.append(action("先看看", async () => {
+            if (!preview.hidden) { preview.hidden = true; return; }
+            if (character.unavailableReason) {
+              preview.textContent = `暂不能预览或导入：${character.unavailableReason}`;
+              preview.hidden = false;
+              say(`${character.name}暂时不能导入。`);
+              return;
+            }
+            say(`正在整理${character.name}的角色资料…`);
+            const result = await post("/workbench/tea-party/preview", { file: character.file });
+            const card = result.character || {};
+            preview.textContent = [
+              `角色卡：${character.file}`,
+              `设定：${card.description || "（空）"}`,
+              `性格：${card.personality || "（空）"}`,
+              `原本的世界与背景：${card.scenario || "（空）"}`,
+              `说话样例：${card.exampleDialogue || "（空）"}`,
+              `性格档案：${result.personaNotesIncluded ? `带 ${result.personaNotesIncluded} 条（世界书里的人格部分）` : "（没有）"}`,
+              `初见问候：${card.firstMessage || "（空）"}`,
+              `作者资料：${[card.creator, card.characterVersion ? `版本 ${card.characterVersion}` : "", ...(card.tags || [])].filter(Boolean).join(" · ") || "（没有）"}`,
+              `作者备注：${card.creatorNotes || "（没有）"}`,
+              `头像：${result.avatarAvailable ? "可以带过去" : result.avatarNote || "没有可用头像"}`,
+              `这次不带：${(result.notImported || []).join("、")}`,
+            ].join("\n\n");
+            preview.hidden = false;
+            say(`${character.name}的角色资料读好了；不会带酒馆聊天记录。`);
+          }, true));
+          row.append(invite);
+          item.append(title, line, row, preview);
+          characterList.append(item);
+        }
+      }
+
+      async function openInvite() {
+        await refreshTeaPartyAvailability();
+        if (!teaPartyAvailable) {
+          show();
+          inviteNotice.hidden = false;
+          say(teaPartyStatusError ? "暂时没法确认茶话会是否就绪，稍后再试哈。" : (inviteNoticeTitle.textContent || "茶话会还没准备好。"));
+          return;
+        }
+        show(invitePanel);
+        say("正在读酒馆里的角色…");
+        characterList.replaceChildren();
+        const data = await call("/workbench/characters");
+        if (!data.characters.length) {
+          characterTitle.hidden = true;
+          say("酒馆里还没有角色卡。先在酒馆里导入一张，再回来邀请。");
+          return;
+        }
+        characterTitle.hidden = false;
+        characterTitle.textContent = `酒馆里的角色（${data.characters.length}）`;
+        renderCharacters(data.characters);
+        say(`酒馆里有 ${data.characters.length} 位角色，先看看资料再邀请到茶话会。`);
+      }
+
+      async function openExport() {
+        show(exportPanel);
+        say("正在读 Hana 里的伙伴…");
+        agentList.replaceChildren();
+        const data = await call("/workbench/agents");
+        if (!data.agents.length) {
+          say("没有找到可带走的伙伴。");
+          return;
+        }
+        say(`共 ${data.agents.length} 位伙伴。带去酒馆只抄性格，技术细节不会跟过去。`);
+        for (const agent of data.agents) {
+          const item = document.createElement("article");
+          item.className = "item";
+          const title = document.createElement("h2");
+          title.textContent = agent.name;
+          const line = document.createElement("p");
+          line.textContent = agent.mine ? "鲜花酿自己的伙伴" : "你名下的伙伴";
+          const row = document.createElement("div");
+          row.className = "row";
+          const button = document.createElement("button");
+          button.className = "do";
+          button.type = "button";
+          button.textContent = "先看看";
+          const preview = document.createElement("pre");
+          preview.className = "preview";
+          preview.hidden = true;
+          button.addEventListener("click", () => guard(async () => {
+            if (!preview.hidden) { preview.hidden = true; button.textContent = "先看看"; return; }
+            say(`正在读${agent.name}的资料…`);
+            const result = await post("/workbench/export/preview", { agentId: agent.id });
+            const data_ = result.card?.data || {};
+            const bookCount = result.bookEntries || 0;
+            preview.textContent = [
+              `名字：${data_.name || agent.name}`,
+              `设定：${data_.description || "（空）"}`,
+              `性格：${data_.personality || "（没有带性格层记忆）"}`,
+              `场景：${data_.scenario || "（空）"}`,
+              `开场：${data_.first_mes || "（空）"}`,
+              `系统提示：${data_.system_prompt || "（空）"}`,
+              `记忆：清洗后保留 ${result.keptMemoryChars || 0} 字，拆成 ${bookCount} 条世界书回忆；方言 ${result.dialectChars || 0} 字。`,
+            ].join("\n\n");
+            preview.hidden = false;
+            button.textContent = "收起";
+            const send = document.createElement("button");
+            send.className = "do";
+            send.type = "button";
+            send.textContent = "带去酒馆";
+            send.addEventListener("click", () => guard(async () => {
+              say(`正在把${agent.name}写进酒馆…`);
+              const done = await post("/workbench/export", { agentId: agent.id });
+              send.disabled = true;
+              send.textContent = "已写入";
+              say(`${done.name}的角色卡已写进酒馆，打开酒馆就能选到。`);
+            }));
+            row.append(send);
+            say(`${agent.name}的资料读好了，确认后再写入。`);
+          }));
+          row.append(button);
+          item.append(title, line, row, preview);
+          agentList.append(item);
+        }
+      }
+
+      inviteButton.addEventListener("click", () => guard(async () => {
+        await refreshTeaPartyAvailability();
+        if (!teaPartyAvailable) {
+          inviteNotice.hidden = false;
+          say(teaPartyStatusError ? "暂时没法确认茶话会是否就绪，稍后再试哈。" : (inviteNoticeTitle.textContent || "茶话会还没准备好。"));
+          inviteNotice.scrollIntoView({ block: "nearest" });
+          return;
+        }
+        await openInvite();
+      }));
+      document.getElementById("exportPartner").addEventListener("click", () => guard(openExport));
+      // 低频入口默认收起，先让常用三件事露在外面；展开状态不持久化，重开面板回到收起。
+      const moreToggle = document.getElementById("moreToggle");
+      const moreList = document.getElementById("moreList");
+      moreToggle.addEventListener("click", () => {
+        const open = moreToggle.getAttribute("aria-expanded") === "true";
+        moreToggle.setAttribute("aria-expanded", String(!open));
+        moreList.hidden = open;
+      });
+      // 内部子页仍挂在同一个宿主功能面板，不另外打开卡片。
+      import('./workbench-features.js').then(({ initWorkbenchFeatures }) => {
+        initWorkbenchFeatures({ hana, call, post, say, show, guard, action });
+      }).catch(error => say(`工作台业务模块未载入：${error.message}`));
+      document.getElementById("inviteBack").addEventListener("click", () => { show(); say("挑一个入口吧。"); });
+      document.getElementById("exportBack").addEventListener("click", () => { show(); say("挑一个入口吧。"); });
+
+      show();
+      say("酒馆在主页面自动打开，常用入口放在这里。");
+      void refreshTeaPartyAvailability();
+    })();
+  </script>
+</body>
+</html>

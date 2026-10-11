@@ -1,0 +1,68 @@
+{
+  "manifestVersion": 2,
+  "id": "xianhuaniang",
+  "name": "鲜花酿",
+  "version": "0.1.0",
+  "capabilities": [
+    "app/runtime.execute",
+    "app/runtime.local-machine",
+    "app/runtime.network",
+    "app/resources.read",
+    "app/resources.write",
+    "app/agents.read",
+    "app/agents.manage",
+    "app/sessions.manage",
+    "app/sessions.read",
+    "app/session.start-turn",
+    "app/services.call",
+    "app/tools.expose-to-model"
+  ],
+  "entry": "index.js",
+  "icon": "assets/icon.png",
+  "minAppVersion": "0.1020.0",
+  "description": "把原生的酒馆（SillyTavern）装进 Hana，内置一套会跟着 Hana 明暗自动换色的酒馆皮肤。附带测卡功能，可以让小花在真酒馆里帮你把角色卡跑一遍体检。也能把你家的伙伴带进酒馆里玩，如果装了「茶话会」应用，还能把酒馆角色邀请到茶话会来住。",
+  "activationEvents": [
+    "onStartup"
+  ],
+  "contributes": {
+    "messageRenderers": [
+      {
+        "customType": "theater",
+        "cardId": "theater"
+      }
+    ],
+    "cards": [
+      {
+        "id": "theater",
+        "title": "鲜花酿 · 小剧场",
+        "description": "测卡与代笔：选角色卡和测试方式，提交后在这里逐幕看真实过程和角色回复；结论回主对话正文说。",
+        "face": {
+          "image": "assets/workspace.png"
+        },
+        "route": "/theater.html",
+        "cardForm": "flush",
+        "titlebar": "solid"
+      },
+      {
+        "id": "workspace",
+        "title": "鲜花酿",
+        "description": "打开即进入酒馆；邀请角色到茶话会、伙伴出口与测卡入口放在 Hana 功能面板。",
+        "face": {
+          "image": "assets/workspace.png"
+        },
+        "pageIcon": "assets/nav-icon.svg",
+        "route": "/workspace.html",
+        "realization": "page",
+        "siteNavEntry": true,
+        "fpFullPanel": true,
+        "functionPanel": {
+          "id": "workbench",
+          "label": "鲜花酿工作台",
+          "route": "/workbench.html"
+        },
+        "cardForm": "flush",
+        "titlebar": "solid"
+      }
+    ]
+  }
+}

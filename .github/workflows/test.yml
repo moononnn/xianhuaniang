@@ -1,0 +1,29 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  node-tests:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Run the complete Node test suite
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -LiteralPath .\tests -Filter '*.test.js' -File |
+            Sort-Object FullName |
+            ForEach-Object FullName
+          if (-not $files) { throw 'No test files were found.' }
+          node --test --test-concurrency=1 @files
