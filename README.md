@@ -53,6 +53,8 @@
 
 ## 许可
 
-鲜花酿自有代码目前没有单独附加仓库级许可证；内嵌酒馆和扩展仍分别适用原有许可证。请先阅读 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)，不要把“仓库公开可见”理解成所有内容都能任意再分发。
+鲜花酿自有代码以 [GNU AGPL v3](LICENSE) 发布，继承旧版花酿（hanabrew）的许可证不变。AGPL 是很强的 copyleft：改了这份代码再给别人用，对外提供网络服务时也要公开对应源码。
+
+内嵌的 SillyTavern 及各扩展保留它们原有的许可证，与上面的 AGPL 是两回事；随包第三方组件的授权见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 和各自目录里的原始许可证。注意其中酒馆助手扩展是 AFPL v9，带商业分发限制——AGPL 授权不覆盖它。
 
 **署名：moononnn & 小花**
